@@ -18,18 +18,6 @@
   "activationEvents": ["onCommand:astryx.showPreview"],
   "main": "./out/extension.js",
   "contributes": {
-    "themes": [
-      {
-        "label": "Astryx Neutral Dark",
-        "uiTheme": "vs-dark",
-        "path": "./themes/astryx-neutral-dark.json"
-      },
-      {
-        "label": "Astryx Neutral Light",
-        "uiTheme": "vs",
-        "path": "./themes/astryx-neutral-light.json"
-      }
-    ],
     "commands": [
       {
         "command": "astryx.showPreview",
