@@ -1,8 +1,8 @@
 {
   "name": "astryx-vscode",
   "displayName": "Astryx for VS Code",
-  "description": "Astryx design system themes and live component preview for VS Code",
-  "version": "0.1.0",
+  "description": "Astryx design system component preview that matches your current VS Code theme",
+  "version": "0.2.0",
   "publisher": "cixzhang",
   "license": "MIT",
   "repository": {
@@ -12,7 +12,7 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Themes", "Other"],
+  "categories": ["Other"],
   "keywords": ["astryx", "design system", "theme", "meta", "stylex"],
   "icon": "media/icon.png",
   "activationEvents": ["onCommand:astryx.showPreview"],
@@ -35,39 +35,8 @@
         "command": "astryx.showPreview",
         "title": "Astryx: Show Component Preview",
         "category": "Astryx"
-      },
-      {
-        "command": "astryx.selectTheme",
-        "title": "Astryx: Select Astryx Theme",
-        "category": "Astryx"
       }
-    ],
-    "configuration": {
-      "title": "Astryx",
-      "properties": {
-        "astryx.preview.themeName": {
-          "type": "string",
-          "default": "neutral",
-          "enum": ["neutral", "stone", "matcha", "y2k", "chocolate", "butter", "gothic"],
-          "enumDescriptions": [
-            "Neutral — monochrome, the default Astryx theme",
-            "Stone — warm neutral tones",
-            "Matcha — green-tinted",
-            "Y2K — retro 2000s aesthetic",
-            "Chocolate — warm brown tones",
-            "Butter — soft yellow tones",
-            "Gothic — dark gothic aesthetic"
-          ],
-          "description": "Which Astryx theme to use in the component preview webview"
-        },
-        "astryx.preview.colorMode": {
-          "type": "string",
-          "default": "dark",
-          "enum": ["light", "dark"],
-          "description": "Color mode for the component preview"
-        }
-      }
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
