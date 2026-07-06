@@ -1,50 +1,92 @@
 # Astryx for VS Code
 
 > **⚠️ WIP — Not yet tested inside VS Code.**
-> The component preview has been verified to render in a headless browser, but it has not been tested as a running VS Code webview extension yet. CSS variable resolution may need adjustment after real testing.
+> The component preview has been verified to render in a headless browser, but it has not been tested as a running VS Code webview extension yet. The defineTheme() integration and CSS variable extraction need validation inside a real VS Code webview.
 
-A live component preview for VS Code powered by the [Astryx](https://github.com/facebook/astryx) design system. The preview matches your active VS Code color theme — no Astryx themes are installed or required.
+A live component preview for VS Code powered by the [Astryx](https://github.com/facebook/astryx) design system. The preview builds an Astryx theme at runtime that derives from your active VS Code color theme — no Astryx themes are installed or required.
 
-## Features
+## How It Works
 
-### Component Preview Panel
-Run `Astryx: Show Component Preview` to open a webview panel that renders real Astryx components (Button, Badge, Card, Avatar, Switch, Banner, ProgressBar, and more) using the CDN ESM consumption pattern.
+### How VS Code exposes theme colors
 
-The preview automatically matches whatever VS Code color theme you have active. It reads VS Code's injected `--vscode-*` CSS variables and maps them to Astryx's `--color-*` tokens at runtime. When you switch VS Code themes, the preview updates live.
+VS Code provides theme colors to webviews in two ways:
+
+1. **CSS variables (webview side):** VS Code injects `--vscode-*` custom properties onto the webview's `<body>`. The raw hex values can be read with `getComputedStyle`:
+   ```js
+   const bg = getComputedStyle(document.body).getPropertyValue('--vscode-editor-background');
+   // → "#1e1e1e" (for Dark+)
+   ```
+
+2. **ColorTheme API (extension host side):** `vscode.window.activeColorTheme` gives a `ColorTheme` object, but it only exposes `kind` (Light, Dark, HighContrast, HighContrastLight). There is no stable API to read actual color values from the extension host — only the webview CSS variables give you the raw colors.
+
+### Building an Astryx theme from VS Code colors
+
+The webview reads 30+ `--vscode-*` variables via `getComputedStyle`, then calls Astryx's `defineTheme()` to build a proper Astryx theme object:
+
+```ts
+import { defineTheme } from '@astryxdesign/core/theme';
+import { neutralTheme } from '@astryxdesign/theme-neutral';
+
+const theme = defineTheme({
+  name: 'vscode-active',
+  extends: neutralTheme,  // inherit icon registry, component defaults, scale config
+  tokens: {
+    '--color-text-primary':       vscodeColors.editorFg,
+    '--color-background-surface':  vscodeColors.editorBg,
+    '--color-accent':              vscodeColors.buttonBg,
+    '--color-border':              vscodeColors.border,
+    '--color-syntax-keyword':      vscodeColors.symKeyword,
+    // ... 50+ token mappings
+  },
+});
+
+// Pass to Theme provider
+<Theme theme={theme} mode={mode}>
+  <Button label="Primary" variant="primary" />
+</Theme>
+```
+
+This goes through Astryx's full theme pipeline — scale generation, component defaults, icon registry — rather than just overriding CSS variables. The `extends: neutralTheme` ensures all tokens not explicitly mapped fall back to Astryx's neutral defaults.
+
+### Live theme switching
+
+When you switch VS Code color themes (Cmd+K Cmd+T), the extension:
+1. Detects the change via `vscode.window.onDidChangeActiveColorTheme`
+2. Sends the new light/dark mode to the webview via `postMessage`
+3. The webview re-reads `--vscode-*` variables and rebuilds the `defineTheme()` object
+4. React re-renders all components with the new theme
+
+### Extracted color reference
+
+The preview includes a debug section showing all extracted VS Code color values with swatches:
+
+| VS Code Variable | Astryx Token | Example (Dark+) |
+|---|---|---|
+| `--vscode-editor-background` | `--color-background-surface` | `#1e1e1e` |
+| `--vscode-editor-foreground` | `--color-text-primary` | `#d4d4d4` |
+| `--vscode-button-background` | `--color-accent` | `#0e639c` |
+| `--vscode-button-foreground` | `--color-on-accent` | `#ffffff` |
+| `--vscode-sideBar-background` | `--color-background-body` | `#252526` |
+| `--vscode-descriptionForeground` | `--color-text-secondary` | `#858585` |
+| `--vscode-errorForeground` | `--color-error` | `#f48771` |
+| `--vscode-editorWarning-foreground` | `--color-warning` | `#cca700` |
+| `--vscode-symbolKeyword-foreground` | `--color-syntax-keyword` | `#569cd6` |
+| `--vscode-symbolString-foreground` | `--color-syntax-string` | `#ce9178` |
+| `--vscode-editorComment-foreground` | `--color-syntax-comment` | `#6a9955` |
+| ... | ... | 30+ total mappings |
 
 ## Getting Started
 
 ### Install from VSIX
 ```bash
-code --install-extension astryx-vscode-0.2.0.vsix
+code --install-extension astryx-vscode-0.3.0.vsix
 ```
 
 ### Open Component Preview
 1. Open Command Palette (`Cmd+Shift+P`)
 2. Run `Astryx: Show Component Preview`
 3. A webview panel opens showing live Astryx components themed by your active VS Code color theme
-
-## How It Works
-
-The webview reads VS Code's own `--vscode-*` CSS variables (which VS Code injects into every webview based on the active color theme) and maps them to Astryx's `--color-*` design tokens:
-
-| VS Code Variable | Astryx Token |
-|---|---|
-| `--vscode-editor-background` | `--color-background-surface` |
-| `--vscode-editor-foreground` | `--color-text-primary` |
-| `--vscode-button-background` | `--color-accent` |
-| `--vscode-sideBar-background` | `--color-background-body` |
-| `--vscode-errorForeground` | `--color-error`, `--color-text-red` |
-| `--vscode-descriptionForeground` | `--color-text-secondary` |
-| ... | 50+ mappings |
-
-The extension also detects light vs dark mode from `vscode.window.activeColorTheme.kind` and passes it to Astryx's `<Theme>` provider. When you switch themes, `onDidChangeActiveColorTheme` notifies the webview to re-render.
-
-### Component Preview Architecture
-- React 19 from esm.sh
-- `@astryxdesign/core` from esm.sh with `?external=react,react-dom`
-- `@astryxdesign/theme-neutral` from esm.sh (for Theme provider + icon registry only — CSS tokens are overridden by VS Code variables)
-- Components rendered via `React.createElement` (not htm — avoids template literal collisions in the TS template string)
+4. Switch VS Code themes to see the preview update live
 
 ## Development
 

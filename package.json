@@ -2,7 +2,7 @@
   "name": "astryx-vscode",
   "displayName": "Astryx for VS Code",
   "description": "Astryx design system component preview that matches your current VS Code theme",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "cixzhang",
   "license": "MIT",
   "repository": {

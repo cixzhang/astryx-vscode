@@ -1,8 +1,10 @@
 /**
  * Generate webview HTML for the Astryx component preview.
- * The webview reads VS Code's injected CSS variables (--vscode-*)
- * and maps them to Astryx's --color-* tokens so components
- * match whatever theme is currently active in VS Code.
+ *
+ * The webview reads VS Code's injected --vscode-* CSS variables via
+ * getComputedStyle, extracts the raw color values, and passes them
+ * to Astryx's defineTheme() to build a proper Astryx theme object
+ * that derives from the active VS Code color theme.
  */
 export function getWebviewContent(initialMode: string): string {
   return `<!DOCTYPE html>
@@ -18,7 +20,6 @@ export function getWebviewContent(initialMode: string): string {
 
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/reset.css">
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/astryx.css">
-  <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/theme-neutral@0.1.2/theme.css">
 
   <script type="importmap">
   {
@@ -50,152 +51,204 @@ export function getWebviewContent(initialMode: string): string {
       padding: 0;
       min-height: 100vh;
     }
-
-    #astryx-root {
-      --color-text-primary: var(--vscode-editor-foreground, #fafafa);
-      --color-text-secondary: var(--vscode-descriptionForeground, #a3a3a3);
-      --color-text-disabled: var(--vscode-disabledForeground, #525252);
-      --color-text-accent: var(--vscode-textLink-foreground, #ebebeb);
-      --color-icon-primary: var(--vscode-editor-foreground, #fafafa);
-      --color-icon-secondary: var(--vscode-descriptionForeground, #a3a3a3);
-      --color-icon-accent: var(--vscode-textLink-foreground, #ebebeb);
-      --color-icon-disabled: var(--vscode-disabledForeground, #525252);
-
-      --color-background-body: var(--vscode-sideBar-background, #1b1b1b);
-      --color-background-surface: var(--vscode-editor-background, #0a0a0a);
-      --color-background-card: var(--vscode-sideBar-background, #1b1b1b);
-      --color-background-popover: var(--vscode-sideBar-background, #1b1b1b);
-      --color-background-muted: var(--vscode-sideBarSectionHeader-background, #1b1b1b);
-
-      --color-border: var(--vscode-sideBar-border, rgba(255,255,255,0.1));
-      --color-border-emphasized: var(--vscode-panel-border, rgba(255,255,255,0.2));
-      --color-skeleton: var(--vscode-editorIndentGuide-background, #525252);
-      --color-shadow: var(--vscode-widget-shadow, rgba(0,0,0,0.3));
-
-      --color-overlay: rgba(0, 0, 0, 0.5);
-      --color-overlay-hover: var(--vscode-list-hoverBackground, rgba(255,255,255,0.05));
-      --color-overlay-pressed: var(--vscode-list-activeSelectionBackground, rgba(255,255,255,0.1));
-
-      --color-neutral: var(--vscode-list-hoverBackground, rgba(255,255,255,0.05));
-
-      --color-accent: var(--vscode-button-background, #0e639c);
-      --color-accent-muted: var(--vscode-button-hoverBackground, #1177bb);
-      --color-on-accent: var(--vscode-button-foreground, #ffffff);
-      --color-on-dark: var(--vscode-button-foreground, #ffffff);
-      --color-on-light: var(--vscode-button-background, #0e639c);
-
-      --color-success: var(--vscode-testing-iconPassed, #73c991);
-      --color-error: var(--vscode-errorForeground, #f48771);
-      --color-warning: var(--vscode-editorWarning-foreground, #cca700);
-      --color-on-success: #ffffff;
-      --color-on-error: #ffffff;
-      --color-on-warning: #ffffff;
-
-      --color-success-muted: var(--color-success);
-      --color-error-muted: var(--color-error);
-      --color-warning-muted: var(--color-warning);
-
-      --color-syntax-keyword: var(--vscode-symbolKeyword-foreground, var(--vscode-editor-foreground));
-      --color-syntax-string: var(--vscode-symbolString-foreground, var(--vscode-editor-foreground));
-      --color-syntax-comment: var(--vscode-editorComment-foreground, var(--color-text-secondary));
-      --color-syntax-number: var(--vscode-symbolNumeric-foreground, var(--vscode-editor-foreground));
-      --color-syntax-function: var(--vscode-symbolFunction-foreground, var(--vscode-editor-foreground));
-      --color-syntax-type: var(--vscode-symbolClass-foreground, var(--vscode-editor-foreground));
-      --color-syntax-variable: var(--vscode-editor-foreground);
-      --color-syntax-operator: var(--vscode-editor-foreground);
-      --color-syntax-constant: var(--vscode-symbolConstant-foreground, var(--vscode-editor-foreground));
-      --color-syntax-tag: var(--vscode-symbolTag-foreground, var(--vscode-editor-foreground));
-      --color-syntax-attribute: var(--vscode-symbolAttribute-foreground, var(--vscode-editor-foreground));
-      --color-syntax-property: var(--vscode-symbolProperty-foreground, var(--vscode-editor-foreground));
-      --color-syntax-punctuation: var(--color-text-secondary);
-      --color-syntax-background: var(--vscode-editor-background, #0a0a0a);
-
-      --color-text-red: var(--vscode-errorForeground, #f48771);
-      --color-text-green: var(--vscode-testing-iconPassed, #73c991);
-      --color-text-blue: var(--vscode-textLink-foreground, #3794ff);
-      --color-text-yellow: var(--vscode-editorWarning-foreground, #cca700);
-      --color-text-orange: var(--vscode-editorWarning-foreground, #cca700);
-      --color-text-purple: var(--vscode-symbolClass-foreground, #c586c0);
-      --color-text-pink: var(--vscode-symbolTag-foreground, #f48771);
-      --color-text-teal: var(--vscode-symbolProperty-foreground, #4ec9b0);
-      --color-text-cyan: var(--vscode-symbolFunction-foreground, #4ec9b0);
-      --color-text-gray: var(--color-text-secondary);
-
-      --color-icon-red: var(--color-text-red);
-      --color-icon-green: var(--color-text-green);
-      --color-icon-blue: var(--color-text-blue);
-      --color-icon-yellow: var(--color-text-yellow);
-      --color-icon-orange: var(--color-text-orange);
-      --color-icon-purple: var(--color-text-purple);
-      --color-icon-pink: var(--color-text-pink);
-      --color-icon-teal: var(--color-text-teal);
-      --color-icon-cyan: var(--color-text-cyan);
-
-      --color-border-red: var(--color-text-red);
-      --color-border-green: var(--color-text-green);
-      --color-border-blue: var(--color-text-blue);
-      --color-border-yellow: var(--color-text-yellow);
-      --color-border-orange: var(--color-text-orange);
-      --color-border-purple: var(--color-text-purple);
-      --color-border-pink: var(--color-text-pink);
-      --color-border-teal: var(--color-text-teal);
-      --color-border-cyan: var(--color-text-cyan);
-      --color-border-gray: var(--color-border);
-
-      --color-background-red: color-mix(in srgb, var(--color-text-red) 15%, var(--color-background-surface));
-      --color-background-green: color-mix(in srgb, var(--color-text-green) 15%, var(--color-background-surface));
-      --color-background-blue: color-mix(in srgb, var(--color-text-blue) 15%, var(--color-background-surface));
-      --color-background-yellow: color-mix(in srgb, var(--color-text-yellow) 15%, var(--color-background-surface));
-      --color-background-orange: color-mix(in srgb, var(--color-text-orange) 15%, var(--color-background-surface));
-      --color-background-purple: color-mix(in srgb, var(--color-text-purple) 15%, var(--color-background-surface));
-      --color-background-pink: color-mix(in srgb, var(--color-text-pink) 15%, var(--color-background-surface));
-      --color-background-teal: color-mix(in srgb, var(--color-text-teal) 15%, var(--color-background-surface));
-      --color-background-cyan: color-mix(in srgb, var(--color-text-cyan) 15%, var(--color-background-surface));
-      --color-background-gray: var(--color-background-muted);
-
-      --color-tint-hover: var(--color-overlay-hover);
-    }
   </style>
 </head>
 <body>
-  <div id="astryx-root" data-astryx-theme="neutral"></div>
+  <div id="astryx-root"></div>
 
   <script type="module">
-    import React, { useState, useEffect } from 'react';
+    import React, { useState, useEffect, useMemo } from 'react';
     import { createRoot } from 'react-dom/client';
     import * as Astryx from '@astryxdesign/core';
+    import { defineTheme } from '@astryxdesign/core/theme';
     import { neutralTheme } from '@astryxdesign/theme-neutral';
 
     const h = React.createElement;
     const {
       Theme, Button, Badge, Card, Text, Heading, VStack, HStack,
-      Section, Divider, Switch, Banner, Avatar, StatusDot, Spinner,
+      Divider, Switch, Banner, Avatar, StatusDot, Spinner,
       ProgressBar, TextInput,
     } = Astryx;
 
-    function ComponentShowcase() {
+    // ─── Extract raw color values from VS Code's CSS variables ───
+    function readVscodeColors() {
+      const styles = getComputedStyle(document.body);
+      const get = (name) => styles.getPropertyValue(name).trim();
+      return {
+        editorBg:        get('--vscode-editor-background'),
+        editorFg:        get('--vscode-editor-foreground'),
+        sideBarBg:       get('--vscode-sideBar-background'),
+        sideBarFg:       get('--vscode-sideBar-foreground'),
+        activityBarBg:   get('--vscode-activityBar-background'),
+        statusBarBg:     get('--vscode-statusBar-background'),
+        buttonBg:        get('--vscode-button-background'),
+        buttonFg:        get('--vscode-button-foreground'),
+        buttonHover:     get('--vscode-button-hoverBackground'),
+        inputBg:         get('--vscode-input-background'),
+        inputFg:         get('--vscode-input-foreground'),
+        inputBorder:     get('--vscode-input-border'),
+        border:          get('--vscode-sideBar-border'),
+        listHover:       get('--vscode-list-hoverBackground'),
+        listActiveSel:   get('--vscode-list-activeSelectionBackground'),
+        listActiveSelFg: get('--vscode-list-activeSelectionForeground'),
+        descFg:          get('--vscode-descriptionForeground'),
+        errorFg:         get('--vscode-errorForeground'),
+        warningFg:       get('--vscode-editorWarning-foreground'),
+        textLink:        get('--vscode-textLink-foreground'),
+        indentGuide:     get('--vscode-editorIndentGuide-background'),
+        widgetShadow:    get('--vscode-widget-shadow'),
+        panelBorder:     get('--vscode-panel-border'),
+        tabActiveBg:     get('--vscode-tab-activeBackground'),
+        tabInactiveBg:   get('--vscode-tab-inactiveBackground'),
+        // Semantic syntax colors
+        symKeyword:      get('--vscode-symbolKeyword-foreground'),
+        symString:       get('--vscode-symbolString-foreground'),
+        symComment:      get('--vscode-editorComment-foreground'),
+        symNumber:       get('--vscode-symbolNumeric-foreground'),
+        symFunction:     get('--vscode-symbolFunction-foreground'),
+        symClass:        get('--vscode-symbolClass-foreground'),
+        symTag:          get('--vscode-symbolTag-foreground'),
+        symAttribute:    get('--vscode-symbolAttribute-foreground'),
+        symProperty:     get('--vscode-symbolProperty-foreground'),
+        symConstant:     get('--vscode-symbolConstant-foreground'),
+        // Git decoration colors
+        gitModified:     get('--vscode-gitDecoration-modifiedResourceForeground'),
+        gitUntracked:    get('--vscode-gitDecoration-untrackedResourceForeground'),
+        gitDeleted:      get('--vscode-gitDecoration-deletedResourceForeground'),
+      };
+    }
+
+    // ─── Build an Astryx theme from the VS Code color values ───
+    function buildVscodeTheme(colors, mode) {
+      const bg = colors.editorBg || (mode === 'dark' ? '#0a0a0a' : '#ffffff');
+      const fg = colors.editorFg || (mode === 'dark' ? '#fafafa' : '#171717');
+      const accent = colors.buttonBg || (mode === 'dark' ? '#0e639c' : '#007acc');
+      const onAccent = colors.buttonFg || '#ffffff';
+
+      return defineTheme({
+        name: 'vscode-active',
+        extends: neutralTheme,
+        tokens: {
+          // Core text colors
+          '--color-text-primary':     fg,
+          '--color-text-secondary':   colors.descFg || (mode === 'dark' ? '#a3a3a3' : '#737373'),
+          '--color-text-accent':      colors.textLink || accent,
+
+          // Background colors
+          '--color-background-surface': bg,
+          '--color-background-body':    colors.sideBarBg || colors.editorBg || bg,
+          '--color-background-card':    colors.sideBarBg || bg,
+          '--color-background-popover': colors.sideBarBg || bg,
+          '--color-background-muted':   colors.listHover || bg,
+
+          // Accent (maps to VS Code button)
+          '--color-accent':        accent,
+          '--color-accent-muted':  colors.buttonHover || accent,
+          '--color-on-accent':     onAccent,
+
+          // Borders
+          '--color-border':            colors.border || 'rgba(128,128,128,0.2)',
+          '--color-border-emphasized': colors.panelBorder || 'rgba(128,128,128,0.3)',
+
+          // Semantic status
+          '--color-success': colors.gitUntracked || '#73c991',
+          '--color-error':   colors.errorFg || '#f48771',
+          '--color-warning': colors.warningFg || '#cca700',
+
+          // Syntax highlighting
+          '--color-syntax-keyword':   colors.symKeyword || fg,
+          '--color-syntax-string':    colors.symString || fg,
+          '--color-syntax-comment':   colors.symComment || colors.descFg || '#a3a3a3',
+          '--color-syntax-number':    colors.symNumber || fg,
+          '--color-syntax-function':  colors.symFunction || fg,
+          '--color-syntax-type':      colors.symClass || colors.symKeyword || fg,
+          '--color-syntax-variable':  fg,
+          '--color-syntax-operator':  fg,
+          '--color-syntax-constant':  colors.symConstant || fg,
+          '--color-syntax-tag':       colors.symTag || fg,
+          '--color-syntax-attribute': colors.symAttribute || fg,
+          '--color-syntax-property':  colors.symProperty || fg,
+          '--color-syntax-background': bg,
+          '--color-syntax-punctuation': colors.descFg || '#a3a3a3',
+
+          // Category color families — derived from VS Code semantic colors
+          '--color-text-blue':   colors.textLink || '#3794ff',
+          '--color-text-green':  colors.gitUntracked || '#73c991',
+          '--color-text-red':    colors.errorFg || '#f48771',
+          '--color-text-yellow': colors.warningFg || '#cca700',
+          '--color-text-purple': colors.symClass || '#c586c0',
+          '--color-text-orange': colors.warningFg || '#cca700',
+          '--color-text-teal':   colors.symProperty || '#4ec9b0',
+          '--color-text-cyan':   colors.symFunction || '#4ec9b0',
+
+          // Icon colors follow text colors
+          '--color-icon-primary':   fg,
+          '--color-icon-secondary': colors.descFg || '#a3a3a3',
+          '--color-icon-accent':    colors.textLink || accent,
+
+          // Overlay (list selection / hover)
+          '--color-overlay-hover':    colors.listHover || 'rgba(128,128,128,0.1)',
+          '--color-overlay-pressed':  colors.listActiveSel || 'rgba(128,128,128,0.2)',
+
+          // Misc
+          '--color-shadow':   colors.widgetShadow || 'rgba(0,0,0,0.3)',
+          '--color-skeleton': colors.indentGuide || 'rgba(128,128,128,0.15)',
+        },
+      });
+    }
+
+    function ComponentShowcase({ initialMode }) {
       const [switchVal, setSwitchVal] = useState(true);
       const [inputVal, setInputVal] = useState('');
-      const [mode, setMode] = useState('${initialMode}');
+      const [mode, setMode] = useState(initialMode);
+      const [colors, setColors] = useState(null);
 
+      // Read VS Code CSS variables on mount and when theme changes
       useEffect(() => {
+        const readColors = () => {
+          // Slight delay to ensure VS Code has updated the CSS vars
+          setTimeout(() => {
+            setColors(readVscodeColors());
+          }, 50);
+        };
+        readColors();
+
         const handler = (event) => {
           const msg = event.data;
           if (msg.type === 'themeChanged') {
             setMode(msg.mode);
+            readColors();
           }
         };
         window.addEventListener('message', handler);
         return () => window.removeEventListener('message', handler);
       }, []);
 
-      return h(Theme, { theme: neutralTheme, mode },
+      // Build the Astryx theme from VS Code colors
+      const theme = useMemo(() => {
+        if (!colors) return neutralTheme;
+        try {
+          return buildVscodeTheme(colors, mode);
+        } catch (e) {
+          console.error('Failed to build VS Code theme:', e);
+          return neutralTheme;
+        }
+      }, [colors, mode]);
+
+      if (!colors) {
+        return h('div', { style: { padding: '32px', color: 'var(--vscode-editor-foreground, #fafafa)' } },
+          'Reading VS Code theme colors...'
+        );
+      }
+
+      return h(Theme, { theme, mode },
         h('div', { style: { padding: '32px', maxWidth: '800px', margin: '0 auto' } },
           h(VStack, { gap: 8 },
-            // Title
+            // Title + debug info
             h(VStack, { gap: 2 },
               h(Heading, { level: 1 }, 'Astryx Component Preview'),
-              h(Text, { type: 'supporting' }, 'Matching your active VS Code theme')
+              h(Text, { type: 'supporting' }, 'Themed by your active VS Code color theme'),
+              h(Text, { type: 'code' }, 'defineTheme({ name: "vscode-active", extends: neutralTheme, ... })')
             ),
             h(Divider),
 
@@ -328,15 +381,28 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
+            // Raw color values (for debugging)
             h(Divider),
-            h(Text, { type: 'supporting' }, 'Astryx components themed by your active VS Code color theme')
+            h(VStack, { gap: 2 },
+              h(Heading, { level: 3 }, 'Extracted VS Code Colors'),
+              h(Text, { type: 'supporting' }, 'Raw values from getComputedStyle — these are what defineTheme() receives:'),
+              ...Object.entries(colors).filter(([_, v]) => v).map(([key, val]) =>
+                h(HStack, { gap: 2, key },
+                  h('div', { style: { width: '16px', height: '16px', borderRadius: '3px', background: val, border: '1px solid rgba(128,128,128,0.3)', flexShrink: 0 } }),
+                  h(Text, { type: 'code' }, key + ': ' + val)
+                )
+              )
+            ),
+
+            h(Divider),
+            h(Text, { type: 'supporting' }, 'Astryx components themed by defineTheme() derived from your active VS Code color theme')
           )
         )
       );
     }
 
     const root = createRoot(document.getElementById('astryx-root'));
-    root.render(h(ComponentShowcase));
+    root.render(h(ComponentShowcase, { initialMode: '${initialMode}' }));
   </script>
 </body>
 </html>`;
