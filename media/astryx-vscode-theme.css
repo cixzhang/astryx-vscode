@@ -1,0 +1,87 @@
+/**
+ * Astryx theme CSS that maps VS Code's --vscode-* variables to Astryx's
+ * --color-* design tokens. Pure CSS — no JavaScript, no defineTheme(),
+ * no getComputedStyle. Load this after the neutral theme CSS in any
+ * VS Code webview that renders Astryx components.
+ *
+ * Usage:
+ *   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/reset.css">
+ *   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/astryx.css">
+ *   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/theme-neutral@0.1.2/theme.css">
+ *   <link rel="stylesheet" href="astryx-vscode-theme.css">
+ *
+ * Then use <Theme theme={neutralTheme} mode="dark"> — the CSS overrides
+ * take effect via cascade. No defineTheme() call needed.
+ */
+
+@layer astryx-theme {
+  [data-astryx-theme] {
+    /* ── Text ── */
+    --color-text-primary:     var(--vscode-editor-foreground, #fafafa);
+    --color-text-secondary:   var(--vscode-descriptionForeground, #a3a3a3);
+    --color-text-accent:      var(--vscode-textLink-foreground, #3794ff);
+    --color-text-disabled:    var(--vscode-disabledForeground, #525252);
+
+    /* ── Backgrounds ── */
+    --color-background-surface: var(--vscode-editor-background, #0a0a0a);
+    --color-background-body:    var(--vscode-sideBar-background, #1b1b1b);
+    --color-background-card:    var(--vscode-sideBar-background, #1b1b1b);
+    --color-background-popover: var(--vscode-sideBar-background, #1b1b1b);
+    --color-background-muted:  var(--vscode-sideBarSectionHeader-background, #1b1b1b);
+
+    /* ── Accent (VS Code button) ── */
+    --color-accent:       var(--vscode-button-background, #0e639c);
+    --color-accent-muted:  var(--vscode-button-hoverBackground, #1177bb);
+    --color-on-accent:     var(--vscode-button-foreground, #ffffff);
+
+    /* ── Borders ── */
+    --color-border:            var(--vscode-sideBar-border, rgba(128,128,128,0.15));
+    --color-border-emphasized: var(--vscode-panel-border, rgba(128,128,128,0.25));
+
+    /* ── Semantic status ── */
+    --color-success: var(--vscode-testing-iconPassed, #73c991);
+    --color-error:   var(--vscode-errorForeground, #f48771);
+    --color-warning: var(--vscode-editorWarning-foreground, #cca700);
+
+    /* ── Syntax highlighting ── */
+    --color-syntax-keyword:   var(--vscode-symbolKeyword-foreground, var(--vscode-editor-foreground));
+    --color-syntax-string:    var(--vscode-symbolString-foreground, var(--vscode-editor-foreground));
+    --color-syntax-comment:   var(--vscode-editorComment-foreground, var(--vscode-descriptionForeground));
+    --color-syntax-number:    var(--vscode-symbolNumeric-foreground, var(--vscode-editor-foreground));
+    --color-syntax-function:  var(--vscode-symbolFunction-foreground, var(--vscode-editor-foreground));
+    --color-syntax-type:      var(--vscode-symbolClass-foreground, var(--vscode-symbolKeyword-foreground, var(--vscode-editor-foreground)));
+    --color-syntax-variable:  var(--vscode-editor-foreground, #fafafa);
+    --color-syntax-operator:  var(--vscode-editor-foreground, #fafafa);
+    --color-syntax-constant:  var(--vscode-symbolConstant-foreground, var(--vscode-editor-foreground));
+    --color-syntax-tag:       var(--vscode-symbolTag-foreground, var(--vscode-editor-foreground));
+    --color-syntax-attribute: var(--vscode-symbolAttribute-foreground, var(--vscode-editor-foreground));
+    --color-syntax-property:  var(--vscode-symbolProperty-foreground, var(--vscode-editor-foreground));
+    --color-syntax-background: var(--vscode-editor-background, #0a0a0a);
+    --color-syntax-punctuation: var(--vscode-descriptionForeground, #a3a3a3);
+
+    /* ── Category colors ── */
+    --color-text-blue:   var(--vscode-textLink-foreground, #3794ff);
+    --color-text-green:  var(--vscode-testing-iconPassed, #73c991);
+    --color-text-red:    var(--vscode-errorForeground, #f48771);
+    --color-text-yellow: var(--vscode-editorWarning-foreground, #cca700);
+    --color-text-purple: var(--vscode-symbolClass-foreground, #c586c0);
+    --color-text-orange: var(--vscode-editorWarning-foreground, #cca700);
+    --color-text-teal:   var(--vscode-symbolProperty-foreground, #4ec9b0);
+    --color-text-cyan:   var(--vscode-symbolFunction-foreground, #4ec9b0);
+    --color-text-gray:   var(--vscode-descriptionForeground, #a3a3a3);
+
+    /* ── Icon colors ── */
+    --color-icon-primary:   var(--vscode-editor-foreground, #fafafa);
+    --color-icon-secondary: var(--vscode-descriptionForeground, #a3a3a3);
+    --color-icon-accent:    var(--vscode-textLink-foreground, #3794ff);
+
+    /* ── Overlay (list hover/selection) ── */
+    --color-overlay-hover:   var(--vscode-list-hoverBackground, rgba(128,128,128,0.1));
+    --color-overlay-pressed: var(--vscode-list-activeSelectionBackground, rgba(128,128,128,0.2));
+
+    /* ── Misc ── */
+    --color-shadow:   var(--vscode-widget-shadow, rgba(0,0,0,0.3));
+    --color-skeleton: var(--vscode-editorIndentGuide-background, rgba(128,128,128,0.15));
+    --color-neutral:  var(--vscode-list-hoverBackground, rgba(128,128,128,0.08));
+  }
+}
