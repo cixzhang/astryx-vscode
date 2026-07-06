@@ -12,10 +12,20 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
-  "keywords": ["astryx", "design system", "theme", "meta", "stylex"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "astryx",
+    "design system",
+    "theme",
+    "meta",
+    "stylex"
+  ],
   "icon": "media/icon.png",
-  "activationEvents": ["onCommand:astryx.showPreview"],
+  "activationEvents": [
+    "onCommand:astryx.showPreview"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -34,8 +44,15 @@
     "publish": "vsce publish"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
+    "@astryxdesign/cli": "^0.1.2",
+    "@astryxdesign/core": "^0.1.2",
+    "@astryxdesign/theme-neutral": "^0.1.2",
     "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
     "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   }
 }

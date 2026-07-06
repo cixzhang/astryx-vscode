@@ -1,15 +1,15 @@
+import * as vscode from 'vscode';
+
 /**
  * Generate webview HTML for the Astryx component preview.
  *
- * Uses a static CSS file (astryx-vscode-theme.css) that maps
- * --vscode-* variables to Astryx --color-* tokens. No defineTheme(),
- * no getComputedStyle, no JavaScript theme logic at all — pure CSS cascade.
+ * Uses the vscode theme package (built via `astryx theme build`) — same
+ * pattern as @astryxdesign/theme-neutral. The theme CSS is generated ahead
+ * of time, the JS theme object is embedded inline.
  *
- * The CSS file is reusable: any VS Code webview extension can load it
- * alongside Astryx's theme CSS to get VS Code theme integration.
+ * Token values are var(--vscode-*) references compiled by the Astryx
+ * theme pipeline into proper scoped CSS.
  */
-import * as vscode from 'vscode';
-
 export function getWebviewContent(initialMode: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -25,10 +25,9 @@ export function getWebviewContent(initialMode: string): string {
   <!-- Astryx base CSS -->
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/reset.css">
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/astryx.css">
-  <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/theme-neutral@0.1.2/theme.css">
 
-  <!-- VS Code → Astryx token mapping (pure CSS, no JS) -->
-  <link rel="stylesheet" href="https://raw.githubusercontent.com/cixzhang/astryx-vscode/main/media/astryx-vscode-theme.css">
+  <!-- VS Code theme CSS (built via astryx theme build) -->
+  <link rel="stylesheet" href="https://raw.githubusercontent.com/cixzhang/astryx-vscode/main/dist/theme.css">
 
   <script type="importmap">
   {
@@ -37,9 +36,7 @@ export function getWebviewContent(initialMode: string): string {
       "react-dom": "https://esm.sh/react-dom@19.2.7",
       "react-dom/client": "https://esm.sh/react-dom@19.2.7/client",
       "react/jsx-runtime": "https://esm.sh/react@19.2.7/jsx-runtime",
-      "@astryxdesign/core": "https://esm.sh/@astryxdesign/core@0.1.2?external=react,react-dom",
-      "@astryxdesign/core/theme": "https://esm.sh/@astryxdesign/core@0.1.2/theme?external=react,react-dom",
-      "@astryxdesign/theme-neutral": "https://esm.sh/@astryxdesign/theme-neutral@0.1.2?external=react,react-dom"
+      "@astryxdesign/core": "https://esm.sh/@astryxdesign/core@0.1.2?external=react,react-dom"
     }
   }
   </script>
@@ -67,9 +64,64 @@ export function getWebviewContent(initialMode: string): string {
     import React, { useState, useEffect } from 'react';
     import { createRoot } from 'react-dom/client';
     import * as Astryx from '@astryxdesign/core';
-    import { neutralTheme } from '@astryxdesign/theme-neutral';
+    import { defineTheme } from 'https://esm.sh/@astryxdesign/core@0.1.2/theme?external=react,react-dom';
 
     const h = React.createElement;
+
+    // Build the vscode theme at module load time.
+    // Token values are var(--vscode-*) references — CSS resolves them
+    // synchronously. No flash, no getComputedStyle.
+    // This uses defineTheme() the same way neutralTheme.ts does, just
+    // with var() references instead of [light, dark] hex arrays pairs.
+    const vscodeTheme = defineTheme({
+      name: 'vscode',
+      tokens: {
+        '--color-background-surface': 'var(--vscode-editor-background, #0a0a0a)',
+        '--color-background-body':    'var(--vscode-sideBar-background, #1b1b1b)',
+        '--color-background-card':    'var(--vscode-sideBar-background, #1b1b1b)',
+        '--color-background-popover': 'var(--vscode-sideBar-background, #1b1b1b)',
+        '--color-background-muted':   'var(--vscode-sideBarSectionHeader-background, #1b1b1b)',
+        '--color-accent':       'var(--vscode-button-background, #0e639c)',
+        '--color-accent-muted':  'var(--vscode-button-hoverBackground, #1177bb)',
+        '--color-on-accent':     'var(--vscode-button-foreground, #ffffff)',
+        '--color-text-primary':   'var(--vscode-editor-foreground, #fafafa)',
+        '--color-text-secondary': 'var(--vscode-descriptionForeground, #a3a3a3)',
+        '--color-text-accent':    'var(--vscode-textLink-foreground, #3794ff)',
+        '--color-text-disabled':  'var(--vscode-disabledForeground, #525252)',
+        '--color-icon-accent':    'var(--vscode-textLink-foreground, #3794ff)',
+        '--color-icon-primary':   'var(--vscode-editor-foreground, #fafafa)',
+        '--color-icon-secondary': 'var(--vscode-descriptionForeground, #a3a3a3)',
+        '--color-icon-disabled':  'var(--vscode-disabledForeground, #525252)',
+        '--color-border':            'var(--vscode-sideBar-border, rgba(128,128,128,0.15))',
+        '--color-border-emphasized': 'var(--vscode-panel-border, rgba(128,128,128,0.25))',
+        '--color-overlay-hover':   'var(--vscode-list-hoverBackground, rgba(128,128,128,0.1))',
+        '--color-overlay-pressed': 'var(--vscode-list-activeSelectionBackground, rgba(128,128,128,0.2))',
+        '--color-neutral':  'var(--vscode-list-hoverBackground, rgba(128,128,128,0.08))',
+        '--color-success': 'var(--vscode-testing-iconPassed, #73c991)',
+        '--color-error':   'var(--vscode-errorForeground, #f48771)',
+        '--color-warning': 'var(--vscode-editorWarning-foreground, #cca700)',
+        '--color-syntax-keyword':   'var(--vscode-symbolKeyword-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-string':    'var(--vscode-symbolString-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-comment':   'var(--vscode-editorComment-foreground, var(--vscode-descriptionForeground))',
+        '--color-syntax-number':    'var(--vscode-symbolNumeric-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-function':  'var(--vscode-symbolFunction-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-type':      'var(--vscode-symbolClass-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-variable':  'var(--vscode-editor-foreground, #fafafa)',
+        '--color-syntax-punctuation': 'var(--vscode-descriptionForeground, #a3a3a3)',
+        '--color-syntax-background':  'var(--vscode-editor-background, #0a0a0a)',
+        '--color-text-blue':   'var(--vscode-textLink-foreground, #3794ff)',
+        '--color-text-green':  'var(--vscode-testing-iconPassed, #73c991)',
+        '--color-text-red':    'var(--vscode-errorForeground, #f48771)',
+        '--color-text-yellow': 'var(--vscode-editorWarning-foreground, #cca700)',
+        '--color-text-purple': 'var(--vscode-symbolClass-foreground, #c586c0)',
+        '--color-text-teal':   'var(--vscode-symbolProperty-foreground, #4ec9b0)',
+        '--color-text-cyan':   'var(--vscode-symbolFunction-foreground, #4ec9b0)',
+        '--color-text-gray':   'var(--vscode-descriptionForeground, #a3a3a3)',
+        '--color-skeleton': 'var(--vscode-editorIndentGuide-background, rgba(128,128,128,0.15))',
+        '--color-shadow':   'var(--vscode-widget-shadow, rgba(0,0,0,0.3))',
+      },
+    });
+
     const {
       Theme, Button, Badge, Card, Text, Heading, VStack, HStack,
       Divider, Switch, Banner, Avatar, StatusDot, Spinner,
@@ -90,12 +142,12 @@ export function getWebviewContent(initialMode: string): string {
         return () => window.removeEventListener('message', handler);
       }, []);
 
-      return h(Theme, { theme: neutralTheme, mode },
+      return h(Theme, { theme: vscodeTheme, mode },
         h('div', { style: { padding: '32px', maxWidth: '800px', margin: '0 auto' } },
           h(VStack, { gap: 8 },
             h(VStack, { gap: 2 },
               h(Heading, { level: 1 }, 'Astryx Component Preview'),
-              h(Text, { type: 'supporting' }, 'Themed by your active VS Code color theme — pure CSS, no defineTheme()')
+              h(Text, { type: 'supporting' }, 'vscodeTheme — defineTheme() with var(--vscode-*) token values')
             ),
             h(Divider),
 
@@ -222,7 +274,7 @@ export function getWebviewContent(initialMode: string): string {
             ),
 
             h(Divider),
-            h(Text, { type: 'supporting' }, 'Pure CSS theme mapping — astryx-vscode-theme.css maps --vscode-* to --color-* with no JavaScript')
+            h(Text, { type: 'supporting' }, 'Theme source: src/vscodeTheme.ts — built via astryx theme build')
           )
         )
       );
