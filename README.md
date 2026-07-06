@@ -1,5 +1,8 @@
 # Astryx for VS Code
 
+> **⚠️ WIP — Not yet tested inside VS Code.**
+> The component preview has been verified to render in a headless browser, but it has not been tested as a running VS Code webview extension yet. Theme color mappings and CSS variable resolution may need adjustment after real testing.
+
 VS Code themes and a live component preview powered by the [Astryx](https://github.com/facebook/astryx) design system.
 
 ## Features
