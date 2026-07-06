@@ -28,14 +28,14 @@ export function getWebviewContent(initialMode: string): string {
       "react-dom/client": "https://esm.sh/react-dom@19.2.7/client",
       "react/jsx-runtime": "https://esm.sh/react@19.2.7/jsx-runtime",
       "@astryxdesign/core": "https://esm.sh/@astryxdesign/core@0.1.2?external=react,react-dom",
+      "@astryxdesign/core/theme": "https://esm.sh/@astryxdesign/core@0.1.2/theme?external=react,react-dom",
+      "@astryxdesign/theme-neutral": "https://esm.sh/@astryxdesign/theme-neutral@0.1.2?external=react,react-dom",
       "htm": "https://esm.sh/htm@3.1.1"
     }
   }
   </script>
 
   <style>
-    /* VS Code injects these CSS variables into the webview body.
-       We map them to Astryx tokens so components match the active theme. */
     :root {
       --font-family-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -43,51 +43,47 @@ export function getWebviewContent(initialMode: string): string {
     }
 
     body {
-      background: var(--vscode-editor-background);
-      color: var(--vscode-editor-foreground);
+      background: var(--vscode-editor-background, #1b1b1b);
+      color: var(--vscode-editor-foreground, #fafafa);
       font-family: var(--font-family-body);
       margin: 0;
       padding: 0;
       min-height: 100vh;
     }
 
-    /* The root wrapper gets data-astryx-theme so Astryx CSS scope rules apply.
-       We then override every --color-* token with the VS Code equivalents. */
     #astryx-root {
-      --color-text-primary: var(--vscode-editor-foreground);
-      --color-text-secondary: var(--vscode-descriptionForeground);
-      --color-text-disabled: var(--vscode-disabledForeground);
-      --color-text-accent: var(--vscode-textLink-foreground);
-      --color-icon-primary: var(--vscode-editor-foreground);
-      --color-icon-secondary: var(--vscode-descriptionForeground);
-      --color-icon-accent: var(--vscode-textLink-foreground);
-      --color-icon-disabled: var(--vscode-disabledForeground);
+      --color-text-primary: var(--vscode-editor-foreground, #fafafa);
+      --color-text-secondary: var(--vscode-descriptionForeground, #a3a3a3);
+      --color-text-disabled: var(--vscode-disabledForeground, #525252);
+      --color-text-accent: var(--vscode-textLink-foreground, #ebebeb);
+      --color-icon-primary: var(--vscode-editor-foreground, #fafafa);
+      --color-icon-secondary: var(--vscode-descriptionForeground, #a3a3a3);
+      --color-icon-accent: var(--vscode-textLink-foreground, #ebebeb);
+      --color-icon-disabled: var(--vscode-disabledForeground, #525252);
 
-      --color-background-body: var(--vscode-sideBar-background);
-      --color-background-surface: var(--vscode-editor-background);
-      --color-background-card: var(--vscode-sideBar-background);
-      --color-background-popover: var(--vscode-sideBar-background);
-      --color-background-muted: var(--vscode-sideBarSectionHeader-background);
+      --color-background-body: var(--vscode-sideBar-background, #1b1b1b);
+      --color-background-surface: var(--vscode-editor-background, #0a0a0a);
+      --color-background-card: var(--vscode-sideBar-background, #1b1b1b);
+      --color-background-popover: var(--vscode-sideBar-background, #1b1b1b);
+      --color-background-muted: var(--vscode-sideBarSectionHeader-background, #1b1b1b);
 
-      --color-border: var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
-      --color-border-emphasized: var(--vscode-panel-border, var(--vscode-contrastBorder, transparent));
-      --color-skeleton: var(--vscode-editorIndentGuide-background);
-      --color-shadow: var(--vscode-widget-shadow, rgba(0,0,0,0.2));
+      --color-border: var(--vscode-sideBar-border, rgba(255,255,255,0.1));
+      --color-border-emphasized: var(--vscode-panel-border, rgba(255,255,255,0.2));
+      --color-skeleton: var(--vscode-editorIndentGuide-background, #525252);
+      --color-shadow: var(--vscode-widget-shadow, rgba(0,0,0,0.3));
 
       --color-overlay: rgba(0, 0, 0, 0.5);
-      --color-overlay-hover: var(--vscode-list-hoverBackground);
-      --color-overlay-pressed: var(--vscode-list-activeSelectionBackground);
+      --color-overlay-hover: var(--vscode-list-hoverBackground, rgba(255,255,255,0.05));
+      --color-overlay-pressed: var(--vscode-list-activeSelectionBackground, rgba(255,255,255,0.1));
 
-      --color-neutral: var(--vscode-list-hoverBackground);
+      --color-neutral: var(--vscode-list-hoverBackground, rgba(255,255,255,0.05));
 
-      /* Accent — the primary action color */
-      --color-accent: var(--vscode-button-background);
-      --color-accent-muted: var(--vscode-button-hoverBackground);
-      --color-on-accent: var(--vscode-button-foreground);
-      --color-on-dark: var(--vscode-button-foreground);
-      --color-on-light: var(--vscode-button-background);
+      --color-accent: var(--vscode-button-background, #0e639c);
+      --color-accent-muted: var(--vscode-button-hoverBackground, #1177bb);
+      --color-on-accent: var(--vscode-button-foreground, #ffffff);
+      --color-on-dark: var(--vscode-button-foreground, #ffffff);
+      --color-on-light: var(--vscode-button-background, #0e639c);
 
-      /* Semantic status colors */
       --color-success: var(--vscode-testing-iconPassed, #73c991);
       --color-error: var(--vscode-errorForeground, #f48771);
       --color-warning: var(--vscode-editorWarning-foreground, #cca700);
@@ -99,7 +95,6 @@ export function getWebviewContent(initialMode: string): string {
       --color-error-muted: var(--color-error);
       --color-warning-muted: var(--color-warning);
 
-      /* Syntax highlighting tokens (used by Astryx code/text components) */
       --color-syntax-keyword: var(--vscode-symbolKeyword-foreground, var(--vscode-editor-foreground));
       --color-syntax-string: var(--vscode-symbolString-foreground, var(--vscode-editor-foreground));
       --color-syntax-comment: var(--vscode-editorComment-foreground, var(--color-text-secondary));
@@ -113,9 +108,8 @@ export function getWebviewContent(initialMode: string): string {
       --color-syntax-attribute: var(--vscode-symbolAttribute-foreground, var(--vscode-editor-foreground));
       --color-syntax-property: var(--vscode-symbolProperty-foreground, var(--vscode-editor-foreground));
       --color-syntax-punctuation: var(--color-text-secondary);
-      --color-syntax-background: var(--vscode-editor-background);
+      --color-syntax-background: var(--vscode-editor-background, #0a0a0a);
 
-      /* Category colors — map to VS Code semantic colors where possible */
       --color-text-red: var(--vscode-errorForeground, #f48771);
       --color-text-green: var(--vscode-testing-iconPassed, #73c991);
       --color-text-blue: var(--vscode-textLink-foreground, #3794ff);
@@ -167,21 +161,12 @@ export function getWebviewContent(initialMode: string): string {
   <div id="astryx-root" data-astryx-theme="neutral"></div>
 
   <script type="module">
-    const initialMode = '${initialMode}';
-
-    import React, { useState } from 'react';
+    import React, { useState, useEffect } from 'react';
     import { createRoot } from 'react-dom/client';
-    import htm from 'htm';
     import * as Astryx from '@astryxdesign/core';
+    import { neutralTheme } from '@astryxdesign/theme-neutral';
 
-    const html = htm.bind(React.createElement);
-
-    // Import the neutral theme object — we only need it for the Theme provider
-    // (it provides icon sets and component defaults). The CSS tokens are overridden
-    // by the VS Code variables we injected above.
-    const themeModule = await import('https://unpkg.com/@astryxdesign/theme-neutral@0.1.2/built/index.js');
-    const neutralTheme = themeModule.neutralTheme;
-
+    const h = React.createElement;
     const {
       Theme, Button, Badge, Card, Text, Heading, VStack, HStack,
       Section, Divider, Switch, Banner, Avatar, StatusDot, Spinner,
@@ -189,162 +174,169 @@ export function getWebviewContent(initialMode: string): string {
     } = Astryx;
 
     function ComponentShowcase() {
-      const [switchVal, setSwitchVal] = React.useState(true);
-      const [inputVal, setInputVal] = React.useState('');
-      const [mode, setMode] = React.useState(initialMode);
+      const [switchVal, setSwitchVal] = useState(true);
+      const [inputVal, setInputVal] = useState('');
+      const [mode, setMode] = useState('${initialMode}');
 
-      React.useEffect(() => {
-        window.addEventListener('message', (event) => {
+      useEffect(() => {
+        const handler = (event) => {
           const msg = event.data;
           if (msg.type === 'themeChanged') {
             setMode(msg.mode);
           }
-        });
+        };
+        window.addEventListener('message', handler);
+        return () => window.removeEventListener('message', handler);
       }, []);
 
-      return html\`
-        <\${Theme} theme=\${neutralTheme} mode=\${mode}>
-          <div style={{ padding: '32px', maxWidth: '800px', margin: '0 auto' }}>
-            <\${VStack} gap={8}>
-              <\${VStack} gap={2}>
-                <\${Heading} level={1}>Astryx Component Preview</\${Heading}>
-                <\${Text} type="supporting">Matching your active VS Code theme</\${Text}>
-              </\${VStack}>
+      return h(Theme, { theme: neutralTheme, mode },
+        h('div', { style: { padding: '32px', maxWidth: '800px', margin: '0 auto' } },
+          h(VStack, { gap: 8 },
+            // Title
+            h(VStack, { gap: 2 },
+              h(Heading, { level: 1 }, 'Astryx Component Preview'),
+              h(Text, { type: 'supporting' }, 'Matching your active VS Code theme')
+            ),
+            h(Divider),
 
-              <\${Divider} />
+            // Buttons
+            h(VStack, { gap: 4 },
+              h(Heading, { level: 2 }, 'Buttons'),
+              h(HStack, { gap: 3, vAlign: 'center' },
+                h(Button, { label: 'Primary', variant: 'primary' }),
+                h(Button, { label: 'Secondary', variant: 'secondary' }),
+                h(Button, { label: 'Ghost', variant: 'ghost' }),
+                h(Button, { label: 'Small', variant: 'primary', size: 'sm' }),
+                h(Button, { label: 'Large', variant: 'primary', size: 'lg' })
+              )
+            ),
 
-              <\${VStack} gap={4}>
-                <\${Heading} level={2}>Buttons</\${Heading}>
-                <\${HStack} gap={3} vAlign="center">
-                  <\${Button} label="Primary" variant="primary" />
-                  <\${Button} label="Secondary" variant="secondary" />
-                  <\${Button} label="Ghost" variant="ghost" />
-                  <\${Button} label="Small" variant="primary" size="sm" />
-                  <\${Button} label="Large" variant="primary" size="lg" />
-                </\${HStack}>
-              </\${VStack}>
+            // Badges
+            h(VStack, { gap: 4 },
+              h(Heading, { level: 2 }, 'Badges'),
+              h(HStack, { gap: 2, vAlign: 'center', wrap: 'wrap' },
+                h(Badge, { variant: 'neutral', label: 'Neutral' }),
+                h(Badge, { variant: 'info', label: 'Info' }),
+                h(Badge, { variant: 'success', label: 'Success' }),
+                h(Badge, { variant: 'warning', label: 'Warning' }),
+                h(Badge, { variant: 'error', label: 'Error' }),
+                h(Badge, { variant: 'blue', label: 'Blue' }),
+                h(Badge, { variant: 'purple', label: 'Purple' }),
+                h(Badge, { variant: 'green', label: 'Green' })
+              )
+            ),
 
-              <\${VStack} gap={4}>
-                <\${Heading} level={2}>Badges</\${Heading}>
-                <\${HStack} gap={2} vAlign="center" wrap="wrap">
-                  <\${Badge} variant="neutral" label="Neutral" />
-                  <\${Badge} variant="info" label="Info" />
-                  <\${Badge} variant="success" label="Success" />
-                  <\${Badge} variant="warning" label="Warning" />
-                  <\${Badge} variant="error" label="Error" />
-                  <\${Badge} variant="blue" label="Blue" />
-                  <\${Badge} variant="purple" label="Purple" />
-                  <\${Badge} variant="green" label="Green" />
-                </\${HStack}>
-              </\${VStack}>
+            // Cards & Avatars
+            h(VStack, { gap: 4 },
+              h(Heading, { level: 2 }, 'Cards & Avatars'),
+              h(HStack, { gap: 4, vAlign: 'start', wrap: 'wrap' },
+                h(Card, { padding: 5 },
+                  h(VStack, { gap: 3 },
+                    h(HStack, { gap: 3, vAlign: 'center' },
+                      h(Avatar, { name: 'Cindy', size: 'medium' }),
+                      h(VStack, { gap: 0 },
+                        h(Text, { type: 'body' }, 'Cindy Zhang'),
+                        h(Text, { type: 'supporting' }, 'Design Engineer')
+                      )
+                    ),
+                    h(Text, { type: 'body' }, 'Building Astryx — an AI-optimized design system.'),
+                    h(HStack, { gap: 2 },
+                      h(Badge, { variant: 'info', label: 'React' }),
+                      h(Badge, { variant: 'purple', label: 'StyleX' })
+                    )
+                  )
+                ),
+                h(Card, { padding: 5 },
+                  h(VStack, { gap: 3 },
+                    h(HStack, { gap: 3, vAlign: 'center' },
+                      h(Avatar, { name: 'Benji', size: 'medium' }),
+                      h(VStack, { gap: 0 },
+                        h(Text, { type: 'body' }, 'Benji Lee'),
+                        h(Text, { type: 'supporting' }, 'Software Engineer')
+                      )
+                    ),
+                    h(Text, { type: 'body' }, 'Works on developer tooling and CLI.'),
+                    h(HStack, { gap: 2 },
+                      h(Badge, { variant: 'success', label: 'Node' }),
+                      h(Badge, { variant: 'warning', label: 'CLI' })
+                    )
+                  )
+                )
+              )
+            ),
 
-              <\${VStack} gap={4}>
-                <\${Heading} level={2}>Cards & Avatars</\${Heading}>
-                <\${HStack} gap={4} vAlign="start" wrap="wrap">
-                  <\${Card} padding={5}>
-                    <\${VStack} gap={3}>
-                      <\${HStack} gap={3} vAlign="center">
-                        <\${Avatar} name="Cindy" size="medium" />
-                        <\${VStack} gap={0}>
-                          <\${Text} type="body">Cindy Zhang</\${Text}>
-                          <\${Text} type="supporting">Design Engineer</\${Text}>
-                        </\${VStack}>
-                      </\${HStack}>
-                      <\${Text} type="body">Building Astryx — an AI-optimized design system.</\${Text}>
-                      <\${HStack} gap={2}>
-                        <\${Badge} variant="info" label="React" />
-                        <\${Badge} variant="purple" label="StyleX" />
-                      </\${HStack}>
-                    </\${VStack}>
-                  </\${Card}>
-                  <\${Card} padding={5}>
-                    <\${VStack} gap={3}>
-                      <\${HStack} gap={3} vAlign="center">
-                        <\${Avatar} name="Benji" size="medium" />
-                        <\${VStack} gap={0}>
-                          <\${Text} type="body">Benji Lee</\${Text}>
-                          <\${Text} type="supporting">Software Engineer</\${Text}>
-                        </\${VStack}>
-                      </\${HStack}>
-                      <\${Text} type="body">Works on developer tooling and CLI.</\${Text}>
-                      <\${HStack} gap={2}>
-                        <\${Badge} variant="success" label="Node" />
-                        <\${Badge} variant="warning" label="CLI" />
-                      </\${HStack}>
-                    </\${VStack}>
-                  </\${Card}>
-                </\${HStack}>
-              </\${VStack}>
+            // Interactive
+            h(VStack, { gap: 4 },
+              h(Heading, { level: 2 }, 'Interactive'),
+              h(Card, { padding: 5 },
+                h(VStack, { gap: 4 },
+                  h(Switch, {
+                    label: 'Enable feature',
+                    value: switchVal,
+                    onChange: (v) => setSwitchVal(v)
+                  }),
+                  h(TextInput, {
+                    label: 'Search',
+                    value: inputVal,
+                    onChange: (e) => setInputVal(e.target.value),
+                    placeholder: 'Type something...'
+                  }),
+                  h(HStack, { gap: 3, vAlign: 'center' },
+                    h(StatusDot, { variant: 'success', label: 'Healthy' }),
+                    h(StatusDot, { variant: 'warning', label: 'Degraded' }),
+                    h(StatusDot, { variant: 'error', label: 'Down' }),
+                    h(StatusDot, { variant: 'accent', label: 'Active', isPulsing: true })
+                  )
+                )
+              )
+            ),
 
-              <\${VStack} gap={4}>
-                <\${Heading} level={2}>Interactive</\${Heading}>
-                <\${Card} padding={5}>
-                  <\${VStack} gap={4}>
-                    <\${Switch}
-                      label="Enable feature"
-                      value=\${switchVal}
-                      onChange=\${(v) => setSwitchVal(v)}
-                    />
-                    <\${TextInput}
-                      label="Search"
-                      value=\${inputVal}
-                      onChange=\${(e) => setInputVal(e.target.value)}
-                      placeholder="Type something..."
-                    />
-                    <\${HStack} gap={3} vAlign="center">
-                      <\${StatusDot} variant="success" label="Healthy" />
-                      <\${StatusDot} variant="warning" label="Degraded" />
-                      <\${StatusDot} variant="error" label="Down" />
-                      <\${StatusDot} variant="accent" label="Active" isPulsing />
-                    </\${HStack}>
-                  </\${VStack}>
-                </\${Card}>
-              </\${VStack}>
+            // Banners & Progress
+            h(VStack, { gap: 4 },
+              h(Heading, { level: 2 }, 'Banners & Progress'),
+              h(VStack, { gap: 3 },
+                h(Banner, { status: 'info', title: 'Information', description: 'This is an info banner from Astryx.' }),
+                h(Banner, { status: 'success', title: 'Success', description: 'Operation completed successfully.' }),
+                h(Banner, { status: 'warning', title: 'Warning', description: 'Something needs attention.' }),
+                h(Banner, { status: 'error', title: 'Error', description: 'Something went wrong.' }),
+                h(ProgressBar, { label: 'Upload progress', value: 72, max: 100 })
+              )
+            ),
 
-              <\${VStack} gap={4}>
-                <\${Heading} level={2}>Banners & Progress</\${Heading}>
-                <\${VStack} gap={3}>
-                  <\${Banner} status="info" title="Information" description="This is an info banner from Astryx." />
-                  <\${Banner} status="success" title="Success" description="Operation completed successfully." />
-                  <\${Banner} status="warning" title="Warning" description="Something needs attention." />
-                  <\${Banner} status="error" title="Error" description="Something went wrong." />
-                  <\${ProgressBar} label="Upload progress" value={72} max={100} />
-                </\${VStack}>
-              </\${VStack}>
+            // Typography
+            h(VStack, { gap: 4 },
+              h(Heading, { level: 2 }, 'Typography'),
+              h(VStack, { gap: 2 },
+                h(Heading, { level: 1 }, 'Display 1 Heading'),
+                h(Heading, { level: 2 }, 'Display 2 Heading'),
+                h(Heading, { level: 3 }, 'Display 3 Heading'),
+                h(Text, { type: 'large' }, 'Large body text'),
+                h(Text, { type: 'body' }, 'Regular body text'),
+                h(Text, { type: 'supporting' }, 'Supporting text — lower emphasis'),
+                h(Text, { type: 'code' }, 'Code text — monospace')
+              )
+            ),
 
-              <\${VStack} gap={4}>
-                <\${Heading} level={2}>Typography</\${Heading}>
-                <\${VStack} gap={2}>
-                  <\${Heading} level={1}>Display 1 Heading</\${Heading}>
-                  <\${Heading} level={2}>Display 2 Heading</\${Heading}>
-                  <\${Heading} level={3}>Display 3 Heading</\${Heading}>
-                  <\${Text} type="large">Large body text</\${Text}>
-                  <\${Text} type="body">Regular body text</\${Text}>
-                  <\${Text} type="supporting">Supporting text — lower emphasis</\${Text}>
-                  <\${Text} type="code">Code text — monospace</\${Text}>
-                </\${VStack}>
-              </\${VStack}>
+            // Loading States
+            h(VStack, { gap: 4 },
+              h(Heading, { level: 2 }, 'Loading States'),
+              h(HStack, { gap: 4, vAlign: 'center' },
+                h(Spinner, { size: 'sm' }),
+                h(Spinner, { size: 'md' }),
+                h(Spinner, { size: 'lg' }),
+                h(Text, { type: 'supporting' }, 'Loading spinners')
+              )
+            ),
 
-              <\${VStack} gap={4}>
-                <\${Heading} level={2}>Loading States</\${Heading}>
-                <\${HStack} gap={4} vAlign="center">
-                  <\${Spinner} size="sm" />
-                  <\${Spinner} size="md" />
-                  <\${Spinner} size="lg" />
-                  <\${Text} type="supporting">Loading spinners</\${Text}>
-                </\${HStack}>
-              </\${VStack}>
-
-              <\${Divider} />
-              <\${Text} type="supporting">Astryx components themed by your active VS Code color theme</\${Text}>
-            </\${VStack}>
-          </div>
-        </\${Theme}>
-      \`;
+            h(Divider),
+            h(Text, { type: 'supporting' }, 'Astryx components themed by your active VS Code color theme')
+          )
+        )
+      );
     }
 
     const root = createRoot(document.getElementById('astryx-root'));
-    root.render(React.createElement(ComponentShowcase));
+    root.render(h(ComponentShowcase));
   </script>
 </body>
 </html>`;
