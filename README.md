@@ -16,13 +16,13 @@ All 87 UI colors and 23 syntax token rules are mapped from Astryx's CSS custom p
 ### Component Preview Panel
 Run `Astryx: Show Component Preview` to open a webview panel that renders real Astryx components (Button, Badge, Card, Avatar, Switch, Banner, ProgressBar, and more) using the CDN ESM consumption pattern.
 
-Switch between all 7 Astryx themes (neutral, stone, matcha, y2k, chocolate, butter, gothic) and light/dark mode via VS Code settings.
+The preview automatically matches your active VS Code color theme. It reads VS Code's injected `--vscode-*` CSS variables and maps them to Astryx's `--color-*` tokens at runtime. When you switch VS Code themes, the preview updates live.
 
 ## Getting Started
 
 ### Install from VSIX
 ```bash
-code --install-extension astryx-vscode-0.1.0.vsix
+code --install-extension astryx-vscode-0.2.0.vsix
 ```
 
 ### Select Theme
@@ -33,14 +33,7 @@ code --install-extension astryx-vscode-0.1.0.vsix
 ### Open Component Preview
 1. Open Command Palette
 2. Run `Astryx: Show Component Preview`
-3. A webview panel opens showing live Astryx components
-
-### Configure Preview
-In VS Code Settings:
-- `astryx.preview.themeName` — which Astryx theme to use (neutral, stone, matcha, y2k, chocolate, butter, gothic)
-- `astryx.preview.colorMode` — light or dark
-
-Or run `Astryx: Select Astryx Theme` for a quick picker.
+3. A webview panel opens showing live Astryx components themed by your active VS Code color
 
 ## How It Works
 
@@ -60,9 +53,10 @@ The VS Code theme JSON files are generated from Astryx's `theme-neutral` CSS tok
 The webview uses the CDN ESM consumption pattern from Astryx v0.1.2:
 - React 19 from esm.sh
 - `@astryxdesign/core` from esm.sh with `?external=react,react-dom`
-- `htm` for JSX-like syntax without compilation
-- Theme CSS + JS from unpkg
-- All 7 Astryx themes supported
+- `@astryxdesign/theme-neutral` from esm.sh (for Theme provider + icon registry)
+- Components rendered via `React.createElement` (not htm — avoids template literal collisions)
+- VS Code's `--vscode-*` CSS variables mapped to Astryx `--color-*` tokens via CSS custom property overrides
+- `onDidChangeActiveColorTheme` listener pushes light/dark mode changes to the webview
 
 ## Development
 
