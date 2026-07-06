@@ -1,10 +1,11 @@
 /**
  * Generate webview HTML for the Astryx component preview.
  *
- * The webview reads VS Code's injected --vscode-* CSS variables via
- * getComputedStyle, extracts the raw color values, and passes them
- * to Astryx's defineTheme() to build a proper Astryx theme object
- * that derives from the active VS Code color theme.
+ * Builds an Astryx theme via defineTheme() with var(--vscode-*) references
+ * as token values. CSS resolves these synchronously — no runtime
+ * getComputedStyle, no async, no flash of unstyled content.
+ * When the VS Code theme changes, the CSS variables update and
+ * all components re-paint automatically via CSS cascade.
  */
 export function getWebviewContent(initialMode: string): string {
   return `<!DOCTYPE html>
@@ -57,7 +58,7 @@ export function getWebviewContent(initialMode: string): string {
   <div id="astryx-root"></div>
 
   <script type="module">
-    import React, { useState, useEffect, useMemo } from 'react';
+    import React, { useState, useEffect } from 'react';
     import { createRoot } from 'react-dom/client';
     import * as Astryx from '@astryxdesign/core';
     import { defineTheme } from '@astryxdesign/core/theme';
@@ -70,189 +71,107 @@ export function getWebviewContent(initialMode: string): string {
       ProgressBar, TextInput,
     } = Astryx;
 
-    // ─── Extract raw color values from VS Code's CSS variables ───
-    function readVscodeColors() {
-      const styles = getComputedStyle(document.body);
-      const get = (name) => styles.getPropertyValue(name).trim();
-      return {
-        editorBg:        get('--vscode-editor-background'),
-        editorFg:        get('--vscode-editor-foreground'),
-        sideBarBg:       get('--vscode-sideBar-background'),
-        sideBarFg:       get('--vscode-sideBar-foreground'),
-        activityBarBg:   get('--vscode-activityBar-background'),
-        statusBarBg:     get('--vscode-statusBar-background'),
-        buttonBg:        get('--vscode-button-background'),
-        buttonFg:        get('--vscode-button-foreground'),
-        buttonHover:     get('--vscode-button-hoverBackground'),
-        inputBg:         get('--vscode-input-background'),
-        inputFg:         get('--vscode-input-foreground'),
-        inputBorder:     get('--vscode-input-border'),
-        border:          get('--vscode-sideBar-border'),
-        listHover:       get('--vscode-list-hoverBackground'),
-        listActiveSel:   get('--vscode-list-activeSelectionBackground'),
-        listActiveSelFg: get('--vscode-list-activeSelectionForeground'),
-        descFg:          get('--vscode-descriptionForeground'),
-        errorFg:         get('--vscode-errorForeground'),
-        warningFg:       get('--vscode-editorWarning-foreground'),
-        textLink:        get('--vscode-textLink-foreground'),
-        indentGuide:     get('--vscode-editorIndentGuide-background'),
-        widgetShadow:    get('--vscode-widget-shadow'),
-        panelBorder:     get('--vscode-panel-border'),
-        tabActiveBg:     get('--vscode-tab-activeBackground'),
-        tabInactiveBg:   get('--vscode-tab-inactiveBackground'),
-        // Semantic syntax colors
-        symKeyword:      get('--vscode-symbolKeyword-foreground'),
-        symString:       get('--vscode-symbolString-foreground'),
-        symComment:      get('--vscode-editorComment-foreground'),
-        symNumber:       get('--vscode-symbolNumeric-foreground'),
-        symFunction:     get('--vscode-symbolFunction-foreground'),
-        symClass:        get('--vscode-symbolClass-foreground'),
-        symTag:          get('--vscode-symbolTag-foreground'),
-        symAttribute:    get('--vscode-symbolAttribute-foreground'),
-        symProperty:     get('--vscode-symbolProperty-foreground'),
-        symConstant:     get('--vscode-symbolConstant-foreground'),
-        // Git decoration colors
-        gitModified:     get('--vscode-gitDecoration-modifiedResourceForeground'),
-        gitUntracked:    get('--vscode-gitDecoration-untrackedResourceForeground'),
-        gitDeleted:      get('--vscode-gitDecoration-deletedResourceForeground'),
-      };
-    }
+    // ── Build Astryx theme from VS Code CSS variables ──
+    // Token values are var() references — CSS resolves them synchronously.
+    // No getComputedStyle, no async, no flash. When VS Code theme changes,
+    // the --vscode-* vars update and everything re-paints via CSS cascade.
+    const vscodeTheme = defineTheme({
+      name: 'vscode-active',
+      extends: neutralTheme,
+      tokens: {
+        // Text
+        '--color-text-primary':     'var(--vscode-editor-foreground, #fafafa)',
+        '--color-text-secondary':   'var(--vscode-descriptionForeground, #a3a3a3)',
+        '--color-text-accent':      'var(--vscode-textLink-foreground, #3794ff)',
+        '--color-text-disabled':    'var(--vscode-disabledForeground, #525252)',
 
-    // ─── Build an Astryx theme from the VS Code color values ───
-    function buildVscodeTheme(colors, mode) {
-      const bg = colors.editorBg || (mode === 'dark' ? '#0a0a0a' : '#ffffff');
-      const fg = colors.editorFg || (mode === 'dark' ? '#fafafa' : '#171717');
-      const accent = colors.buttonBg || (mode === 'dark' ? '#0e639c' : '#007acc');
-      const onAccent = colors.buttonFg || '#ffffff';
+        // Backgrounds
+        '--color-background-surface': 'var(--vscode-editor-background, #0a0a0a)',
+        '--color-background-body':    'var(--vscode-sideBar-background, #1b1b1b)',
+        '--color-background-card':    'var(--vscode-sideBar-background, #1b1b1b)',
+        '--color-background-popover': 'var(--vscode-sideBar-background, #1b1b1b)',
+        '--color-background-muted':  'var(--vscode-sideBarSectionHeader-background, #1b1b1b)',
 
-      return defineTheme({
-        name: 'vscode-active',
-        extends: neutralTheme,
-        tokens: {
-          // Core text colors
-          '--color-text-primary':     fg,
-          '--color-text-secondary':   colors.descFg || (mode === 'dark' ? '#a3a3a3' : '#737373'),
-          '--color-text-accent':      colors.textLink || accent,
+        // Accent (VS Code button)
+        '--color-accent':       'var(--vscode-button-background, #0e639c)',
+        '--color-accent-muted':  'var(--vscode-button-hoverBackground, #1177bb)',
+        '--color-on-accent':     'var(--vscode-button-foreground, #ffffff)',
 
-          // Background colors
-          '--color-background-surface': bg,
-          '--color-background-body':    colors.sideBarBg || colors.editorBg || bg,
-          '--color-background-card':    colors.sideBarBg || bg,
-          '--color-background-popover': colors.sideBarBg || bg,
-          '--color-background-muted':   colors.listHover || bg,
+        // Borders
+        '--color-border':            'var(--vscode-sideBar-border, rgba(128,128,128,0.15))',
+        '--color-border-emphasized': 'var(--vscode-panel-border, rgba(128,128,128,0.25))',
 
-          // Accent (maps to VS Code button)
-          '--color-accent':        accent,
-          '--color-accent-muted':  colors.buttonHover || accent,
-          '--color-on-accent':     onAccent,
+        // Semantic
+        '--color-success': 'var(--vscode-testing-iconPassed, #73c991)',
+        '--color-error':   'var(--vscode-errorForeground, #f48771)',
+        '--color-warning': 'var(--vscode-editorWarning-foreground, #cca700)',
 
-          // Borders
-          '--color-border':            colors.border || 'rgba(128,128,128,0.2)',
-          '--color-border-emphasized': colors.panelBorder || 'rgba(128,128,128,0.3)',
+        // Syntax
+        '--color-syntax-keyword':   'var(--vscode-symbolKeyword-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-string':    'var(--vscode-symbolString-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-comment':   'var(--vscode-editorComment-foreground, var(--vscode-descriptionForeground))',
+        '--color-syntax-number':    'var(--vscode-symbolNumeric-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-function':  'var(--vscode-symbolFunction-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-type':      'var(--vscode-symbolClass-foreground, var(--vscode-symbolKeyword-foreground, var(--vscode-editor-foreground)))',
+        '--color-syntax-variable':  'var(--vscode-editor-foreground, #fafafa)',
+        '--color-syntax-operator':  'var(--vscode-editor-foreground, #fafafa)',
+        '--color-syntax-constant':  'var(--vscode-symbolConstant-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-tag':       'var(--vscode-symbolTag-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-attribute': 'var(--vscode-symbolAttribute-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-property':  'var(--vscode-symbolProperty-foreground, var(--vscode-editor-foreground))',
+        '--color-syntax-background': 'var(--vscode-editor-background, #0a0a0a)',
+        '--color-syntax-punctuation': 'var(--vscode-descriptionForeground, #a3a3a3)',
 
-          // Semantic status
-          '--color-success': colors.gitUntracked || '#73c991',
-          '--color-error':   colors.errorFg || '#f48771',
-          '--color-warning': colors.warningFg || '#cca700',
+        // Category colors
+        '--color-text-blue':   'var(--vscode-textLink-foreground, #3794ff)',
+        '--color-text-green':  'var(--vscode-testing-iconPassed, #73c991)',
+        '--color-text-red':    'var(--vscode-errorForeground, #f48771)',
+        '--color-text-yellow': 'var(--vscode-editorWarning-foreground, #cca700)',
+        '--color-text-purple': 'var(--vscode-symbolClass-foreground, #c586c0)',
+        '--color-text-orange': 'var(--vscode-editorWarning-foreground, #cca700)',
+        '--color-text-teal':   'var(--vscode-symbolProperty-foreground, #4ec9b0)',
+        '--color-text-cyan':   'var(--vscode-symbolFunction-foreground, #4ec9b0)',
+        '--color-text-gray':   'var(--vscode-descriptionForeground, #a3a3a3)',
 
-          // Syntax highlighting
-          '--color-syntax-keyword':   colors.symKeyword || fg,
-          '--color-syntax-string':    colors.symString || fg,
-          '--color-syntax-comment':   colors.symComment || colors.descFg || '#a3a3a3',
-          '--color-syntax-number':    colors.symNumber || fg,
-          '--color-syntax-function':  colors.symFunction || fg,
-          '--color-syntax-type':      colors.symClass || colors.symKeyword || fg,
-          '--color-syntax-variable':  fg,
-          '--color-syntax-operator':  fg,
-          '--color-syntax-constant':  colors.symConstant || fg,
-          '--color-syntax-tag':       colors.symTag || fg,
-          '--color-syntax-attribute': colors.symAttribute || fg,
-          '--color-syntax-property':  colors.symProperty || fg,
-          '--color-syntax-background': bg,
-          '--color-syntax-punctuation': colors.descFg || '#a3a3a3',
+        // Icon colors
+        '--color-icon-primary':   'var(--vscode-editor-foreground, #fafafa)',
+        '--color-icon-secondary': 'var(--vscode-descriptionForeground, #a3a3a3)',
+        '--color-icon-accent':    'var(--vscode-textLink-foreground, #3794ff)',
 
-          // Category color families — derived from VS Code semantic colors
-          '--color-text-blue':   colors.textLink || '#3794ff',
-          '--color-text-green':  colors.gitUntracked || '#73c991',
-          '--color-text-red':    colors.errorFg || '#f48771',
-          '--color-text-yellow': colors.warningFg || '#cca700',
-          '--color-text-purple': colors.symClass || '#c586c0',
-          '--color-text-orange': colors.warningFg || '#cca700',
-          '--color-text-teal':   colors.symProperty || '#4ec9b0',
-          '--color-text-cyan':   colors.symFunction || '#4ec9b0',
+        // Overlay
+        '--color-overlay-hover':   'var(--vscode-list-hoverBackground, rgba(128,128,128,0.1))',
+        '--color-overlay-pressed': 'var(--vscode-list-activeSelectionBackground, rgba(128,128,128,0.2))',
 
-          // Icon colors follow text colors
-          '--color-icon-primary':   fg,
-          '--color-icon-secondary': colors.descFg || '#a3a3a3',
-          '--color-icon-accent':    colors.textLink || accent,
-
-          // Overlay (list selection / hover)
-          '--color-overlay-hover':    colors.listHover || 'rgba(128,128,128,0.1)',
-          '--color-overlay-pressed':  colors.listActiveSel || 'rgba(128,128,128,0.2)',
-
-          // Misc
-          '--color-shadow':   colors.widgetShadow || 'rgba(0,0,0,0.3)',
-          '--color-skeleton': colors.indentGuide || 'rgba(128,128,128,0.15)',
-        },
-      });
-    }
+        // Misc
+        '--color-shadow':   'var(--vscode-widget-shadow, rgba(0,0,0,0.3))',
+        '--color-skeleton': 'var(--vscode-editorIndentGuide-background, rgba(128,128,128,0.15))',
+        '--color-neutral':  'var(--vscode-list-hoverBackground, rgba(128,128,128,0.08))',
+      },
+    });
 
     function ComponentShowcase({ initialMode }) {
       const [switchVal, setSwitchVal] = useState(true);
       const [inputVal, setInputVal] = useState('');
       const [mode, setMode] = useState(initialMode);
-      const [colors, setColors] = useState(null);
 
-      // Read VS Code CSS variables on mount and when theme changes
       useEffect(() => {
-        const readColors = () => {
-          // Slight delay to ensure VS Code has updated the CSS vars
-          setTimeout(() => {
-            setColors(readVscodeColors());
-          }, 50);
-        };
-        readColors();
-
         const handler = (event) => {
           const msg = event.data;
-          if (msg.type === 'themeChanged') {
-            setMode(msg.mode);
-            readColors();
-          }
+          if (msg.type === 'themeChanged') setMode(msg.mode);
         };
         window.addEventListener('message', handler);
         return () => window.removeEventListener('message', handler);
       }, []);
 
-      // Build the Astryx theme from VS Code colors
-      const theme = useMemo(() => {
-        if (!colors) return neutralTheme;
-        try {
-          return buildVscodeTheme(colors, mode);
-        } catch (e) {
-          console.error('Failed to build VS Code theme:', e);
-          return neutralTheme;
-        }
-      }, [colors, mode]);
-
-      if (!colors) {
-        return h('div', { style: { padding: '32px', color: 'var(--vscode-editor-foreground, #fafafa)' } },
-          'Reading VS Code theme colors...'
-        );
-      }
-
-      return h(Theme, { theme, mode },
+      return h(Theme, { theme: vscodeTheme, mode },
         h('div', { style: { padding: '32px', maxWidth: '800px', margin: '0 auto' } },
           h(VStack, { gap: 8 },
-            // Title + debug info
             h(VStack, { gap: 2 },
               h(Heading, { level: 1 }, 'Astryx Component Preview'),
-              h(Text, { type: 'supporting' }, 'Themed by your active VS Code color theme'),
-              h(Text, { type: 'code' }, 'defineTheme({ name: "vscode-active", extends: neutralTheme, ... })')
+              h(Text, { type: 'supporting' }, 'Themed by your active VS Code color theme via defineTheme()')
             ),
             h(Divider),
 
-            // Buttons
             h(VStack, { gap: 4 },
               h(Heading, { level: 2 }, 'Buttons'),
               h(HStack, { gap: 3, vAlign: 'center' },
@@ -264,7 +183,6 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
-            // Badges
             h(VStack, { gap: 4 },
               h(Heading, { level: 2 }, 'Badges'),
               h(HStack, { gap: 2, vAlign: 'center', wrap: 'wrap' },
@@ -279,7 +197,6 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
-            // Cards & Avatars
             h(VStack, { gap: 4 },
               h(Heading, { level: 2 }, 'Cards & Avatars'),
               h(HStack, { gap: 4, vAlign: 'start', wrap: 'wrap' },
@@ -318,7 +235,6 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
-            // Interactive
             h(VStack, { gap: 4 },
               h(Heading, { level: 2 }, 'Interactive'),
               h(Card, { padding: 5 },
@@ -344,7 +260,6 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
-            // Banners & Progress
             h(VStack, { gap: 4 },
               h(Heading, { level: 2 }, 'Banners & Progress'),
               h(VStack, { gap: 3 },
@@ -356,7 +271,6 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
-            // Typography
             h(VStack, { gap: 4 },
               h(Heading, { level: 2 }, 'Typography'),
               h(VStack, { gap: 2 },
@@ -370,7 +284,6 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
-            // Loading States
             h(VStack, { gap: 4 },
               h(Heading, { level: 2 }, 'Loading States'),
               h(HStack, { gap: 4, vAlign: 'center' },
@@ -381,21 +294,8 @@ export function getWebviewContent(initialMode: string): string {
               )
             ),
 
-            // Raw color values (for debugging)
             h(Divider),
-            h(VStack, { gap: 2 },
-              h(Heading, { level: 3 }, 'Extracted VS Code Colors'),
-              h(Text, { type: 'supporting' }, 'Raw values from getComputedStyle — these are what defineTheme() receives:'),
-              ...Object.entries(colors).filter(([_, v]) => v).map(([key, val]) =>
-                h(HStack, { gap: 2, key },
-                  h('div', { style: { width: '16px', height: '16px', borderRadius: '3px', background: val, border: '1px solid rgba(128,128,128,0.3)', flexShrink: 0 } }),
-                  h(Text, { type: 'code' }, key + ': ' + val)
-                )
-              )
-            ),
-
-            h(Divider),
-            h(Text, { type: 'supporting' }, 'Astryx components themed by defineTheme() derived from your active VS Code color theme')
+            h(Text, { type: 'supporting' }, 'Built via defineTheme() with var(--vscode-*) references — no flash, CSS cascade handles theme switching')
           )
         )
       );
